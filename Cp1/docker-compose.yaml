@@ -1,0 +1,36 @@
+version: "3"
+services:
+  spring:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=jdbc:postgresql://localhost:5432/semestralka
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=password123
+    ports:
+    - "8080:8080" # web
+    networks:
+      - spring-postgres
+  db:
+    image: postgres
+    restart: always
+    volumes:
+      - db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=semestralka
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password123
+    expose:
+    - "5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 1s
+    networks:
+      - spring-postgres
+volumes:
+   db:
+networks:
+  spring-postgres:
